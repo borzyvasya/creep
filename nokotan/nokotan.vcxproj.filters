@@ -15,7 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="norm2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="norm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="norm3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="norm4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

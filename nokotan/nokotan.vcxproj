@@ -128,6 +128,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="norm.cpp" />
+    <ClCompile Include="norm2.cpp" />
+    <ClCompile Include="norm3.cpp" />
+    <ClCompile Include="norm4.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
