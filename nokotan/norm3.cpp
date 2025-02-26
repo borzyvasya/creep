@@ -6,8 +6,8 @@
 #include <cmath>  
 
 using namespace std;
-const int SIZE = 4;
 
+const int SIZE = 4;
 float l_inf_norm(float[]);
 
 int main() {

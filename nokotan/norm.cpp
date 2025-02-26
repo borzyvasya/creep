@@ -1,13 +1,11 @@
 ﻿//‖x‖₁ = Σ |xᵢ|
-//i = 1 to m
+// Σ i = 1 to m
 
 #include <iostream>
-#include <cmath>
-
+  
 using namespace std;
 
 const int SIZE = 4;
-
 float norm(float[]);
 
 int main() {
