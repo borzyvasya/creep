@@ -1,18 +1,15 @@
-﻿//‖x‖₁ = Σ |xᵢ|
-// Σ i = 1 to m
-
-#include <iostream>
+﻿#include <iostream>
   
 using namespace std;
 
 const int SIZE = 4;
 
 float normL1(float[]); // L1
-float normL2(float[]); // L2
+float normL2(float[]); // L2 
 float l_inf_norm(float[]); // L inf for max
 
 int main() {
-    float x[SIZE] = { 7.1, 5.4, 6.8, 4.5 };
+    float x[SIZE] = { 12.7, 4.4, 2.3, 5.5 };
 
     cout << "Norm of the array (L1): " << normL1(x) << endl;
     cout << "Norm of the array (L2): " << normL2(x) << endl;

@@ -150,24 +150,6 @@ float calculateInverseMatrixNorm(float matrix[][Q_WITH_ONE]) {
         }
     }
 
-    // Back substitution for inverse
-    for (int i = Q - 1; i >= 0; i--) {
-        float pivot = augmented[i][i];
-        if (fabs(pivot) < 1e-7) {
-            cout << "Matrix is singular, cannot compute inverse!" << endl;
-            return -1.0f;
-        }
-        for (int j = 0; j < 2 * Q; j++) {
-            augmented[i][j] /= pivot;
-        }
-        for (int k = 0; k < i; k++) {
-            float factor = augmented[k][i];
-            for (int j = 0; j < 2 * Q; j++) {
-                augmented[k][j] -= factor * augmented[i][j];
-            }
-        }
-    }
-
     // Calculate norm of inverse matrix
     float norm = 0.0f;
     for (int j = Q; j < 2 * Q; j++) {
