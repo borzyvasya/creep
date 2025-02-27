@@ -29,17 +29,17 @@ float normL1(float arr[]) {
 float normL2(float arr[]) {
     float sum = 0.0;
     for (int i = 0; i < SIZE; ++i) 
-        sum += arr[i] * arr[i]; // Квадраты элементов
+        sum += sqrt(arr[i] * arr[i]); 
 
-    return sqrt(sum); // Квадратный корень из суммы квадратов
+    return sum; 
 }
 
 float l_inf_norm(float arr[]) {
-    float max_val = 0.0;
+    float max_value = 0.0;
     for (int i = 0; i < SIZE; ++i) {
-        float abs_val = abs(arr[i]);
-        if (abs_val > max_val) max_val = abs_val;
+        float abs_value = abs(arr[i]);
+        if (abs_value > max_value) max_value = abs_value;
     }
 
-    return max_val;
+    return max_value;
 }
