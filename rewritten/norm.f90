@@ -40,8 +40,8 @@ real function normL2(arr, n)
     do i = 1, n
         sum = sum + sqrt(arr(i) * arr(i))  
     end do
-    normL2 = sum  
-end function normL2
+    normL2 = sum
+end function normL2 
 
 ! Функция для L∞ нормы (максимальное абсолютное значение)
 real function l_inf_norm(arr, n)
@@ -51,7 +51,7 @@ real function l_inf_norm(arr, n)
     real :: max_value, abs_value
     integer :: i
     
-    max_value = abs(arr(1))  ! Начальное значение — первый элемент
+    max_value = abs(arr(1))
     do i = 1, n
         abs_value = abs(arr(i))
         if (abs_value > max_value) max_value = abs_value

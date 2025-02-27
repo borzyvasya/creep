@@ -9,7 +9,7 @@ float normL2(float[]); // L2
 float l_inf_norm(float[]); // L inf for max
 
 int main() {
-    float x[SIZE] = { 12.7, 4.4, 2.3, 5.5 };
+    float x[SIZE] = { -12.7, 4.4, 2.3, 5.5 };
 
     cout << "Norm of the array (L1): " << normL1(x) << endl;
     cout << "Norm of the array (L2): " << normL2(x) << endl;

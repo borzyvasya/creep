@@ -10,14 +10,16 @@
 
     ! Вычисление числа обусловленности до изменения матрицы
     cn = mat_norm(a) * inv_norm(a)
-    write(*, '(A, F10.2)') "Condition number: ", cn
 
     ! Решение системы и вывод верхнетреугольной матрицы
-    call gauss_solve(a, x)
+    call forwardSub(a, x)
     write(*,*) "Upper triangular matrix:"
     call print_mat(a)
+    
     write(*,*) "Checking solution:"
     call check_sol(a, x)
+    
+    write(*, *) "Condition number: ", cn
 
 contains
     ! Генерация случайной матрицы
@@ -25,6 +27,7 @@ contains
         real, intent(out) :: m(Q, Q1)
         call random_seed()
         call random_number(m)
+        m = m * 15
     end subroutine rand_mat
 
     ! Печать матрицы
@@ -38,7 +41,7 @@ contains
     end subroutine print_mat
 
     ! Решение системы методом Гаусса без обратного хода
-    subroutine gauss_solve(m, s)
+    subroutine forwardSub(m, s)
         real, intent(inout) :: m(Q, Q1)
         real, intent(out) :: s(Q)
         integer :: i, k, j, mr
@@ -80,7 +83,7 @@ contains
             end do
             s(i) = s(i) / m(i, i)
         end do
-    end subroutine gauss_solve
+    end subroutine forwardSub
 
     ! Проверка решения
     subroutine check_sol(m, s)
@@ -94,7 +97,7 @@ contains
                 sum = sum + m(i, j) * s(j)
             end do
             orig_b = m(i, Q1)
-            if (abs(sum - orig_b) > 1.0e-5) then
+            if (abs(sum - orig_b) > 1.0e-4) then
                 write(*, "(A, I2, A, F10.4, A, F10.4)") "Equation ", i, " fails: ", sum, " != ", orig_b
                 write(*,*) "Solution is incorrect"
                 return

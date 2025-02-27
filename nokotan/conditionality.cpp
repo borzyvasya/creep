@@ -7,6 +7,7 @@ using namespace std;
 
 const int Q = 10;
 constexpr int Q_WITH_ONE = Q + 1;
+const int Q_EXT = Q * 2; // Для создания расширенный матрицы в которой исходная и единичная
 
 void randMatrix(float[][Q_WITH_ONE]);
 void printMatrix(float[][Q_WITH_ONE]);
@@ -28,8 +29,7 @@ int main() {
     cout << "Upper triangular matrix:" << endl;
     printMatrix(matrix);
 
-    cout << "Checking solution:" << endl;
-    checkSolution(matrix, solution);
+    cout << "Checking solution: "; checkSolution(matrix, solution);
 
     float conditionNumber = calculateMatrixNorm(matrix) * calculateInverseMatrixNorm(matrix);
     cout << "Condition number: " << conditionNumber << endl;
@@ -79,9 +79,10 @@ void forwardSubstitution(float matrix[][Q_WITH_ONE], float solution[]) {
             return;
         }
 
-        for (int k = i + 1; k < Q; k++) {
+        // Приведение к верхнетреугольному виду
+        for (int k = i + 1; k < Q; ++k) {
             float factor = matrix[k][i] / matrix[i][i];
-            for (int j = i; j < Q_WITH_ONE; j++) {
+            for (int j = i; j < Q_WITH_ONE; ++j) {
                 matrix[k][j] -= factor * matrix[i][j];
                 if (fabs(matrix[k][j]) < 1e-4) matrix[k][j] = 0.0;
             }
@@ -111,20 +112,20 @@ float calculateMatrixNorm(float matrix[][Q_WITH_ONE]) {
 }
 
 float calculateInverseMatrixNorm(float matrix[][Q_WITH_ONE]) {
-    float augmented[Q][Q * 2];
+    float augmented[Q][Q_EXT];
 
     for (int i = 0; i < Q; ++i) {
         for (int j = 0; j < Q; ++j) {
             augmented[i][j] = matrix[i][j];
         }
         for (int j = 0; j < Q; ++j) {
-            augmented[i][j + Q] = (i == j) ? 1.0f : 0.0f;
+            augmented[i][j + Q] = (i == j) ? 1.0f : 0.0f; 
         }
     }
 
     for (int i = 0; i < Q; i++) {
         if (fabs(augmented[i][i]) < 1e-9) {
-            cout << "Matrix is singular, cannot compute inverse!" << endl;
+            cout << "Matrix is singular" << endl;
             return -1.0f;
         }
         for (int k = i + 1; k < Q; k++) {
