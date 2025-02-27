@@ -1,7 +1,7 @@
 ﻿program norms
     implicit none
     integer, parameter :: SIZE = 4
-    real :: x(SIZE) = [-12.7, 4.4, 2.3, 5.5]
+    real :: x(SIZE) = [12.7, 4.4, 2.3, 5.5]
     
     ! Объявляем функции
     real :: normL1, normL2, l_inf_norm

@@ -1,20 +1,18 @@
 ﻿#include <cstdlib>
 #include <ctime>
-#include <string>
 #include <iostream>
 #include <iomanip>
 
 using namespace std;
 
 const int Q = 10;
-const int Q_EXT = Q * 2;
 constexpr int Q_WITH_ONE = Q + 1;
 
-void randMatrix(float[][Q_WITH_ONE]);          // Generate random matrix Qx(Q+1)
-void printMatrix(float[][Q_WITH_ONE]);         // Print matrix Qx(Q+1)
-void forwardSubstitution(float[][Q_WITH_ONE], float[]); // Full Gaussian elimination
-float calculateMatrixNorm(float[][Q_WITH_ONE]);    // Matrix norm QxQ
-float calculateInverseMatrixNorm(float[][Q_WITH_ONE]); // Inverse matrix norm
+void randMatrix(float[][Q_WITH_ONE]);
+void printMatrix(float[][Q_WITH_ONE]);
+void forwardSubstitution(float[][Q_WITH_ONE], float[]);
+float calculateMatrixNorm(float[][Q_WITH_ONE]);
+float calculateInverseMatrixNorm(float[][Q_WITH_ONE]);
 void checkSolution(float[][Q_WITH_ONE], float[]);
 
 int main() {
@@ -22,26 +20,26 @@ int main() {
     float solution[Q];
     randMatrix(matrix);
 
-    cout << "Original matrix with b:" << endl;
+    cout << "Original matrix:" << endl;
     printMatrix(matrix);
 
-    // Solve the system directly with forward substitution
     forwardSubstitution(matrix, solution);
+
+    cout << "Upper triangular matrix:" << endl;
+    printMatrix(matrix);
 
     cout << "Checking solution:" << endl;
     checkSolution(matrix, solution);
 
-    // Condition number calculation
-    float obuslov = calculateMatrixNorm(matrix) * calculateInverseMatrixNorm(matrix);
-    cout << "Condition number: " << obuslov << endl;
+    float conditionNumber = calculateMatrixNorm(matrix) * calculateInverseMatrixNorm(matrix);
+    cout << "Condition number: " << conditionNumber << endl;
 
     return EXIT_SUCCESS;
 }
 
 void randMatrix(float matrix[][Q_WITH_ONE]) {
-    float CF = 1.0e+04;
+    float CF = 1.0e+03;
     srand(time(NULL));
-
     for (int i = 0; i < Q; ++i) {
         for (int j = 0; j < Q_WITH_ONE; ++j) {
             matrix[i][j] = rand() / CF;
@@ -61,53 +59,42 @@ void printMatrix(float matrix[][Q_WITH_ONE]) {
 }
 
 void forwardSubstitution(float matrix[][Q_WITH_ONE], float solution[]) {
-    // Gaussian elimination with partial pivoting
-    for (int i = 0; i < Q; i++) {
-        // Find pivot
-        float maxEl = fabs(matrix[i][i]);
+    for (int i = 0; i < Q; ++i) {
         int maxRow = i;
-
-        for (int k = i + 1; k < Q; k++) {
-            if (fabs(matrix[k][i]) > maxEl) {
-                maxEl = fabs(matrix[k][i]);
+        for (int k = i + 1; k < Q; ++k) {
+            if (fabs(matrix[k][i]) > fabs(matrix[maxRow][i]))
                 maxRow = k;
-            }
         }
 
-        // Swap rows if necessary
         if (maxRow != i) {
-            for (int j = 0; j < Q_WITH_ONE; j++) {
+            for (int j = 0; j < Q_WITH_ONE; ++j) {
                 float temp = matrix[maxRow][j];
                 matrix[maxRow][j] = matrix[i][j];
                 matrix[i][j] = temp;
             }
         }
 
-        // Check for singularity
         if (fabs(matrix[i][i]) < 1e-6) {
             cout << "Matrix is singular!" << endl;
             return;
         }
 
-        // Eliminate column
-        for (int k = 0; k < Q; k++) {
-            if (k != i) {
-                float factor = matrix[k][i] / matrix[i][i];
-                for (int j = i; j < Q_WITH_ONE; j++) {
-                    matrix[k][j] -= factor * matrix[i][j];
-                    if (fabs(matrix[k][j]) < 1e-4) matrix[k][j] = 0.0;
-                }
+        for (int k = i + 1; k < Q; k++) {
+            float factor = matrix[k][i] / matrix[i][i];
+            for (int j = i; j < Q_WITH_ONE; j++) {
+                matrix[k][j] -= factor * matrix[i][j];
+                if (fabs(matrix[k][j]) < 1e-4) matrix[k][j] = 0.0;
             }
         }
     }
 
-    // Extract solution from the transformed matrix
-    for (int i = 0; i < Q; ++i) {
-        if (fabs(matrix[i][i]) < 1e-7) {
-            cout << "Matrix is singular, cannot solve!" << endl;
-            return;
-        }
-        solution[i] = matrix[i][Q] / matrix[i][i];
+    // Обратный ход (Back Substitution) для solutions[]
+    for (int i = Q - 1; i >= 0; --i) {
+        solution[i] = matrix[i][Q];
+        for (int j = i + 1; j < Q; ++j) 
+            solution[i] -= matrix[i][j] * solution[j];
+ 
+        solution[i] /= matrix[i][i];
     }
 }
 
@@ -124,9 +111,8 @@ float calculateMatrixNorm(float matrix[][Q_WITH_ONE]) {
 }
 
 float calculateInverseMatrixNorm(float matrix[][Q_WITH_ONE]) {
-    float augmented[Q][Q * 2]; // Augmented matrix (A | I)
+    float augmented[Q][Q * 2];
 
-    // Fill augmented matrix (A | I)
     for (int i = 0; i < Q; ++i) {
         for (int j = 0; j < Q; ++j) {
             augmented[i][j] = matrix[i][j];
@@ -136,7 +122,6 @@ float calculateInverseMatrixNorm(float matrix[][Q_WITH_ONE]) {
         }
     }
 
-    // Gaussian elimination without pivoting
     for (int i = 0; i < Q; i++) {
         if (fabs(augmented[i][i]) < 1e-9) {
             cout << "Matrix is singular, cannot compute inverse!" << endl;
@@ -144,13 +129,25 @@ float calculateInverseMatrixNorm(float matrix[][Q_WITH_ONE]) {
         }
         for (int k = i + 1; k < Q; k++) {
             float factor = augmented[k][i] / augmented[i][i];
-            for (int j = 0; j < 2 * Q; j++) {
+            for (int j = 0; j < 2 * Q; ++j) {
                 augmented[k][j] -= factor * augmented[i][j];
             }
         }
     }
 
-    // Calculate norm of inverse matrix
+    // Обратный ход для augmented
+    for (int i = Q - 1; i >= 0; i--) {
+        for (int j = Q; j < 2 * Q; j++) {
+            augmented[i][j] /= augmented[i][i];
+        }
+        for (int k = i - 1; k >= 0; k--) {
+            float factor = augmented[k][i];
+            for (int j = Q; j < 2 * Q; j++) {
+                augmented[k][j] -= factor * augmented[i][j];
+            }
+        }
+    }
+
     float norm = 0.0f;
     for (int j = Q; j < 2 * Q; j++) {
         float colSum = 0.0f;
@@ -168,8 +165,6 @@ void checkSolution(float matrix[][Q_WITH_ONE], float solution[]) {
         for (int j = 0; j < Q; ++j) sum += matrix[i][j] * solution[j];
 
         if (fabs(sum - matrix[i][Q]) > 1e-4) {
-            cout << "Equation " << i + 1 << " is not satisfied: " << sum
-                << " != " << matrix[i][Q] << endl;
             cout << "Solution is incorrect" << endl;
             return;
         }
