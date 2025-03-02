@@ -5,23 +5,26 @@
 
     ! Генерация случайной матрицы
     call rand_mat(a)
+    
     write(*,*) "Original matrix:"
     call print_mat(a)
 
-    ! Вычисление числа обусловленности до изменения матрицы
-    cn = mat_norm(a) * inv_norm(a)
-
     ! Решение системы и вывод верхнетреугольной матрицы
     call forwardSub(a, x)
+    
     write(*,*) "Upper triangular matrix:"
     call print_mat(a)
     
     write(*,*) "Checking solution:"
     call check_sol(a, x)
     
-    write(*, *) "Condition number: ", cn
+    ! Вычисление числа обусловленности 
+    cn = mat_norm(a) * inv_norm(a)
+    write(*, '(A, F8.2)') "Condition number: ", cn
+
 
 contains
+    
     ! Генерация случайной матрицы
     subroutine rand_mat(m)
         real, intent(out) :: m(Q, Q1)
@@ -46,7 +49,7 @@ contains
         real, intent(out) :: s(Q)
         integer :: i, k, j, mr
         real :: me, f, t
-        
+    
         ! Прямой ход 
         do i = 1, Q
             me = abs(m(i, i)); mr = i
@@ -71,7 +74,7 @@ contains
                 where (abs(m(k, :)) < 1.0e-6) m(k, :) = 0.0
             end do
         end do
-        
+    
         ! Прямое вычисление решения из верхнетреугольной матрицы
         do i = Q, 1, -1  ! Теперь идем снизу вверх
             if (abs(m(i, i)) < 1.0e-7) then
@@ -85,40 +88,19 @@ contains
         end do
     end subroutine forwardSub
 
-    ! Проверка решения
-    subroutine check_sol(m, s)
-        real, intent(in) :: m(Q, Q1), s(Q)
-        integer :: i, j
-        real :: sum, orig_b
-        ! Проверка для верхнетреугольной матрицы
-        do i = 1, Q
-            sum = 0.0
-            do j = i, Q  ! Учитываем только верхний треугольник
-                sum = sum + m(i, j) * s(j)
-            end do
-            orig_b = m(i, Q1)
-            if (abs(sum - orig_b) > 1.0e-4) then
-                write(*, "(A, I2, A, F10.4, A, F10.4)") "Equation ", i, " fails: ", sum, " != ", orig_b
-                write(*,*) "Solution is incorrect"
-                return
-            end if
-        end do
-        write(*,*) "Solution is correct"
-    end subroutine check_sol
-
-    ! Вычисление нормы ||A||_∞
+    ! Вычисление нормы ||A||
     real function mat_norm(m)
         real, intent(in) :: m(Q, Q1)
         mat_norm = maxval(sum(abs(m(:, 1:Q)), dim=1))
     end function mat_norm
 
-    ! Вычисление нормы ||A⁻¹||_∞
+    ! Вычисление нормы ||A⁻¹||
     real function inv_norm(m)
         real, intent(in) :: m(Q, Q1)
-        real :: aug(Q, QE)  ! Расширенная матрица [A | I]
+        real :: aug(Q, QE)  ! Расширенная матрица [A | E]
         integer :: i, k, j
         real :: f, p
-        
+    
         aug(:, 1:Q) = m(:, 1:Q)
         aug(:, Q+1:QE) = 0.0
         forall(i=1:Q) aug(i, Q+i) = 1.0
@@ -132,12 +114,12 @@ contains
                     k = j
                 end if
             end do
-            
+        
             if (p < 1.0e-9) then
-                inv_norm = -1.0  ! Матрица вырожденная
+                inv_norm = -1.0  ! Матрица сингулярная
                 return
             end if
-            
+        
             if (k /= i) then
                 aug([i, k], :) = aug([k, i], :)
             end if
@@ -152,5 +134,27 @@ contains
         end do
         inv_norm = maxval(sum(abs(aug(:, Q+1:QE)), dim=1))
     end function inv_norm
+    
+    ! Проверка решения
+    subroutine check_sol(m, s)
+        real, intent(in) :: m(Q, Q1), s(Q)
+        integer :: i, j
+        real :: sum, sol
+        ! Проверка для верхнетреугольной матрицы
+        do i = 1, Q
+            sum = 0.0
+            do j = i, Q  ! Учитываем только верхний треугольник
+                sum = sum + m(i, j) * s(j)
+            end do
+            sol = m(i, Q1)
+            if (abs(sum - sol) > 1.0e-4) then
+                write(*, "(A, I2, A, F10.4, A, F10.4)") & 
+                    "Equation ", i, " fails: ", sum, " != ", sol
+                write(*,*) "Solution is incorrect"
+                return
+            end if
+        end do
+        write(*,*) "Solution is correct"
+    end subroutine check_sol
 
 end program obuslov
