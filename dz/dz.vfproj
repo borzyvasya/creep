@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{25355120-4C67-4A98-A4F6-39C4C81A0661}">
+<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{60C5BA59-D0F7-8F71-464E-79471B3D3B56}">
 	<Platforms>
 		<Platform Name="Win32"/>
 		<Platform Name="x64"/>
@@ -53,11 +53,11 @@
 	<Files>
 		<Filter Name="Header Files" Filter="fi;fd;h;inc"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
-			<File RelativePath=".\mat_m.f90">
+			<File RelativePath=".\dzz_m.f90">
 			</File>
 		</Filter>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
-			<File RelativePath=".\moder.f90">
+			<File RelativePath=".\dzz.f90">
 			</File>
 		</Filter>
 	</Files>

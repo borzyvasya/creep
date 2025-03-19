@@ -26,7 +26,6 @@ int main() {
 
     create_mat(a, m, n); // A
 
-   
     for (int i = 0; i < M; ++i) {
         for (int j = 0; j < LDA; ++j) {
             asv[i * LDA + j] = a[i * LDA + j];
@@ -83,9 +82,9 @@ void mult(double a[], MKL_INT lda, double b[], MKL_INT ldb, double result[]) {
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; ++j) {
             double sum = 0.0;
-            for (int k = 0; k < N; ++k) {
+            for (int k = 0; k < N; ++k) 
                 sum += a[i * lda + k] * b[k * ldb + j];
-            }
+  
             result[i * ldb + j] = sum;
         }
     }
