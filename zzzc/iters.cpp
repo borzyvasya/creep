@@ -1,7 +1,4 @@
 ﻿#include <iostream>
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
 #include <omp.h>
 #include "mkl.h"
 #include <iomanip>
