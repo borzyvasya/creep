@@ -1,29 +1,24 @@
-module zxc_m
-    interface
-        double precision function f(x)
-            implicit none
-            double precision, intent(in) :: x
-        end function f
-        
-        subroutine loop(a, b, tol, max_iter, r, fr, step, iter, fa, fb)
-            implicit none
-            double precision, intent(inout) :: a, b, fa, fb
-            double precision, intent(in) :: tol
-            integer, intent(in) :: max_iter
-            double precision, intent(out) :: r, fr, step
-            integer, intent(out) :: iter
-        end subroutine loop
-        
-        subroutine adjust_function_value(fr, tol)
-            implicit none
-            double precision, intent(inout) :: fr
-            double precision, intent(in) :: tol
-        end subroutine adjust_function_value
-        
-        subroutine check_convergence(iter, max_iter, step, tol)
-            implicit none
-            integer, intent(in) :: iter, max_iter
-            double precision, intent(in) :: step, tol
-        end subroutine check_convergence
-    end interface
-end module
+module dzz_m
+    implicit none
+    
+interface
+    function f(x, a, b) result(res)
+        double precision, intent(in) :: x, a, b
+        double precision :: res
+    end function f
+
+    subroutine check_convergence(iter, max_iter, step, tol)
+        integer, intent(in) :: iter, max_iter
+        double precision, intent(in) :: step, tol
+    end subroutine check_convergence
+
+    subroutine loop(a, b, tol, max_iter, r, step, iter)
+        double precision, intent(inout) :: a, b
+        double precision, intent(in) :: tol
+        integer, intent(in) :: max_iter
+        double precision, intent(out) :: r, step
+        integer, intent(out) :: iter
+    end subroutine loop
+    
+end interface
+end module dzz_m
