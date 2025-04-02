@@ -24,15 +24,15 @@ int main() {
     cout << fixed << setprecision(3) << "Matrix A and b: " << endl;
     printMatrix(A, b);
 
-    cout << "\nSimple iterations: " << endl;
+    cout << "\nSimple iterations (count of iterations): " << endl;
     simpleIteration(A, b, x, eps);
     outputSolutions(A, b, x, "Simple iterations");
 
-    cout << "\nGauss-Seidel: " << endl;
+    cout << "\nGauss-Seidel (count of iterations): " << endl;
     gaussSeidel(A, b, x, eps);
     outputSolutions(A, b, x, "Gauss-Seidel");
 
-    cout << "\nSuccessive Over-Relaxation (SOR): " << endl;
+    cout << "\nSuccessive Over-Relaxation (SOR) (count of iterations): " << endl;
     sor(A, b, x, eps, 1.3); // omega = 1.3 как пример
     outputSolutions(A, b, x, "Successive Over-relaxation");
 
@@ -129,6 +129,7 @@ void gaussSeidel(double A[][N], double b[], double x[], double epsilon) {
 
     while (error > epsilon) {
         error = 0;
+        #pragma omp parallel for reduction(max:error)
         for (int i = 0; i < N; i++) {
             double x_old = x[i];
             // Вычисляем A[i] * x с использованием cblas_ddot
@@ -171,5 +172,4 @@ void outputSolutions(double A[][N], double b[], double x[], string nameOfAlgorit
         cout << setprecision(7) << "x[" << i << "] = " << x[i] << endl;
 
     checkSolution(A, b, x);
-
 }
