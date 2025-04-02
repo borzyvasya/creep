@@ -54,18 +54,15 @@ void generateMatrix(double A[][N], double b[]) {
         A[i][i] = sum + (rand() / CF);
     }
 
-    for (int i = 0; i < N; i++) {
-        b[i] = rand() / CF;
-    }
+    for (int i = 0; i < N; i++) b[i] = rand() / CF;
 }
 
 void checkDiagonalDominance(double A[][N]) {
     for (int i = 0; i < N; i++) {
         double sum = 0;
         for (int j = 0; j < N; j++) {
-            if (i != j) {
+            if (i != j) 
                 sum += fabs(A[i][j]);
-            }
         }
         if (fabs(A[i][i]) <= sum) {
             cout << "Matrix does not satisfy diagonal dominance." << endl;
@@ -81,7 +78,6 @@ void simpleIteration(double A[][N], double b[], double x[], double epsilon) {
 
     for (int i = 0; i < N; i++)
         x[i] = 0;
-
 
     while (error > epsilon) {
         #pragma omp parallel for
@@ -109,8 +105,8 @@ void checkSolution(double A[][N], double b[], double x[]) {
     cblas_dgemv(CblasRowMajor, CblasNoTrans, N, N, 1.0, &A[0][0], N, x, 1, 0.0, Ax, 1);
 
     double residual = 0;
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++)
         residual = max(residual, fabs(Ax[i] - b[i]));
-    }
+ 
     cout << "Residual: " << residual << "\n";
 }
