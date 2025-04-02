@@ -96,7 +96,7 @@ void simpleIteration(double A[][N], double b[], double x[], double epsilon) {
         }
 
         iter++;
-        cout << setprecision(7) << "Iteration " << iter << ", error: " << error << "\n";
+        cout << setprecision(7) << "Iteration " << iter << ", error: " << error << endl;
     }
 }
 
@@ -108,5 +108,5 @@ void checkSolution(double A[][N], double b[], double x[]) {
     for (int i = 0; i < N; i++)
         residual = max(residual, fabs(Ax[i] - b[i]));
  
-    cout << "Residual: " << residual << "\n";
+    cout << "Residual: " << residual << endl;
 }
