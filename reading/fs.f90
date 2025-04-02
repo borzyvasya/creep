@@ -1,5 +1,4 @@
-﻿
-    program fs
+﻿    program fs
     use task
     implicit none
     integer, parameter :: ifl = 10, N = 10, MULT = 10
