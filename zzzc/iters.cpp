@@ -14,7 +14,6 @@ void simpleIteration(double[][N], double[], double[], double);
 // Проверка решения с oneMKL (cblas_dgemv)
 void checkSolution(double[][N], double[], double[]);
 
-
 int main() {
     double A[N][N], b[N], x[N];
 
