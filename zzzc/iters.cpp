@@ -1,36 +1,40 @@
 ﻿#include <iostream>
-#include <omp.h>
-#include "mkl.h"
 #include <iomanip>
+#include "mkl.h"
+#include <omp.h>
 
 const int N = 10;
 
 using namespace std;
 
 void generateMatrix(double[][N], double[]);
+void printMatrix(double[][N], double[]);
 void checkDiagonalDominance(double[][N]);
-// Метод простых итераций с oneMKL (cblas_ddot)
 void simpleIteration(double[][N], double[], double[], double);
-// Проверка решения с oneMKL (cblas_dgemv)
 void checkSolution(double[][N], double[], double[]);
+void gaussSeidel(double[][N], double[], double[], double);
+void sor(double[][N], double[], double[], double, double);
+void outputSolutions(double[][N], double[], double[], string);
 
 int main() {
     double A[N][N], b[N], x[N];
-
+    double eps = 1e-6;
     generateMatrix(A, b);
 
     cout << fixed << setprecision(3) << "Matrix A and b: " << endl;
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++)
-            cout << A[i][j] << "\t";
-        cout << "| " << b[i] << endl;
-    }
+    printMatrix(A, b);
 
-    simpleIteration(A, b, x, 1e-6);
+    cout << "\nSimple iterations: " << endl;
+    simpleIteration(A, b, x, eps);
+    outputSolutions(A, b, x, "Simple iterations");
 
-    cout << "\nSolution: " << endl;
-    for (int i = 0; i < N; i++)
-        cout << setprecision(7) << "x[" << i << "] = " << x[i] << endl;
+    cout << "\nGauss-Seidel: " << endl;
+    gaussSeidel(A, b, x, eps);
+    outputSolutions(A, b, x, "Gauss-Seidel");
+
+    cout << "\nSuccessive Over-Relaxation (SOR):\n";
+    sor(A, b, x, eps, 1.3); // omega = 1.3 как пример
+    outputSolutions(A, b, x, "Successive Over-relaxation");
 
     return EXIT_SUCCESS;
 }
@@ -53,11 +57,20 @@ void generateMatrix(double A[][N], double b[]) {
     for (int i = 0; i < N; i++) b[i] = rand() / CF;
 }
 
+void printMatrix(double A[][N], double b[]) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++)
+            cout << A[i][j] << "\t";
+        cout << "| " << b[i] << endl;
+    }
+}
+
+
 void checkDiagonalDominance(double A[][N]) {
     for (int i = 0; i < N; i++) {
         double sum = 0;
         for (int j = 0; j < N; j++) {
-            if (i != j) 
+            if (i != j)
                 sum += fabs(A[i][j]);
         }
         if (fabs(A[i][i]) <= sum) {
@@ -103,6 +116,60 @@ void checkSolution(double A[][N], double b[], double x[]) {
     double residual = 0;
     for (int i = 0; i < N; i++)
         residual = max(residual, fabs(Ax[i] - b[i]));
- 
+
     cout << "Residual: " << residual << endl;
+}
+
+void gaussSeidel(double A[][N], double b[], double x[], double epsilon) {
+    int iter = 0;
+    double error = epsilon + 1;
+
+    for (int i = 0; i < N; i++)
+        x[i] = 0;
+
+    while (error > epsilon) {
+        error = 0;
+        for (int i = 0; i < N; i++) {
+            double x_old = x[i];
+            // Вычисляем A[i] * x с использованием cblas_ddot
+            double sum = cblas_ddot(N, &A[i][0], 1, x, 1);
+            // Обновляем x[i], исключая старый диагональный вклад
+            x[i] = (b[i] - (sum - A[i][i] * x_old)) / A[i][i];
+            error = max(error, fabs(x[i] - x_old));
+        }
+
+        iter++;
+        cout << setprecision(7) << "Iteration " << iter << ", error: " << error << endl;
+    }
+}
+
+void sor(double A[][N], double b[], double x[], double epsilon, double omega) {
+    int iter = 0;
+    double error = epsilon + 1;
+
+    for (int i = 0; i < N; i++)
+        x[i] = 0;
+
+    while (error > epsilon) {
+        error = 0;
+        for (int i = 0; i < N; i++) {
+            double x_old = x[i];
+            double sum = cblas_ddot(N, &A[i][0], 1, x, 1);
+            double gs_update = (b[i] - (sum - A[i][i] * x_old)) / A[i][i]; // Гаусс-Зейдель шаг
+            x[i] = (1 - omega) * x_old + omega * gs_update; // Применение релаксации
+            error = max(error, fabs(x[i] - x_old));
+        }
+
+        iter++;
+        cout << setprecision(7) << "Iteration " << iter << ", error: " << error << endl;
+    }
+}
+
+void outputSolutions(double A[][N], double b[], double x[], string nameOfAlgorithm) {
+    cout << "\nSolution(s) " << "(" << nameOfAlgorithm << "):" << endl;
+    for (int i = 0; i < N; i++)
+        cout << setprecision(7) << "x[" << i << "] = " << x[i] << endl;
+
+    checkSolution(A, b, x);
+
 }
