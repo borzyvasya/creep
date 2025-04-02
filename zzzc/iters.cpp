@@ -32,7 +32,7 @@ int main() {
     gaussSeidel(A, b, x, eps);
     outputSolutions(A, b, x, "Gauss-Seidel");
 
-    cout << "\nSuccessive Over-Relaxation (SOR):\n";
+    cout << "\nSuccessive Over-Relaxation (SOR): " << endl;
     sor(A, b, x, eps, 1.3); // omega = 1.3 как пример
     outputSolutions(A, b, x, "Successive Over-relaxation");
 
