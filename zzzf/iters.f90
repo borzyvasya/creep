@@ -58,7 +58,7 @@ contains
         integer :: i, j
 
         do i = 1, N
-            write(*, '(10F10.3, " | ", F10.3)') (A(i,j), j=1,N), b(i)
+            write(*, '(10F9.3, " | ", F10.3)') (A(i,j), j=1,N), b(i)
         end do
     end subroutine print_matrix
 
