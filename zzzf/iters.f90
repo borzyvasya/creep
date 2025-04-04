@@ -29,10 +29,9 @@ contains
     subroutine generate_matrix(A, b)
         double precision, intent(out) :: A(N,N), b(N)
         integer :: i, j
-        double precision :: sum, CF, k, rand_val
+        double precision :: sum, CF, rand_val
 
         CF = 1.0d1
-        k = 0.8d0  ! Коэффициент для уменьшения диагональных элементов
         call random_seed()
 
         do i = 1, N
@@ -45,7 +44,7 @@ contains
                 end if
             end do
             call random_number(rand_val)
-            A(i,i) = k * sum + rand_val  ! Диагональ меньше суммы недиагональных
+            A(i,i) = sum + rand_val * CF + 1.0d0
         end do
 
         do i = 1, N
@@ -59,7 +58,7 @@ contains
         integer :: i, j
 
         do i = 1, N
-            write(*, '(10F15.4, " | ", F15.4)') (A(i,j), j=1,N), b(i)
+            write(*, '(10F9.3, " | ", F10.3)') (A(i,j), j=1,N), b(i)
         end do
     end subroutine print_matrix
 
