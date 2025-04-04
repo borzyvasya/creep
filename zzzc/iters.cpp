@@ -173,3 +173,5 @@ void outputSolutions(double A[][N], double b[], double x[], string nameOfAlgorit
 
     checkSolution(A, b, x);
 }
+
+
