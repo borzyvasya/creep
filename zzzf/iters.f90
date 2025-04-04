@@ -1,32 +1,35 @@
 ﻿program IterativeMethods
+    use iters_m
     implicit none
+
     integer, parameter :: N = 10
     double precision, parameter :: EPS = 1.0d-6, OMEGA = 1.3d0
     double precision :: A(N,N), b(N), x(N)
 
-    call generate_matrix(A, b)
+    call generate_matrix(A, b, N)
     write(*, *) "Matrix A and b:"
-    call print_matrix(A, b)
+    call print_matrix(A, b, N)
 
     write(*, *) "--------------------------------------------------"
     write(*, *) "Simple Iterations (Jacobi Method):"
-    call simple_iteration(A, b, x, EPS)
-    call output_solutions(A, b, x, "Simple Iterations")
+    call simple_iteration(A, b, x, EPS, N)
+    call output_solutions(A, b, x, "Simple Iterations", N)
 
     write(*, *) "--------------------------------------------------"
     write(*, *) "Gauss-Seidel Method:"
-    call gauss_seidel(A, b, x, EPS)
-    call output_solutions(A, b, x, "Gauss-Seidel")
+    call gauss_seidel(A, b, x, EPS, N)
+    call output_solutions(A, b, x, "Gauss-Seidel", N)
 
     write(*, *) "--------------------------------------------------"
     write(*, *) "Successive Over-Relaxation (SOR) Method:"
-    call sor(A, b, x, EPS, OMEGA)
-    call output_solutions(A, b, x, "SOR")
+    call sor(A, b, x, EPS, OMEGA, N)
+    call output_solutions(A, b, x, "SOR", N)
     write(*, *) "--------------------------------------------------"
 
-contains
-
-    subroutine generate_matrix(A, b)
+end program IterativeMethods
+    
+    subroutine generate_matrix(A, b, N)
+        integer, intent(in) :: N
         double precision, intent(out) :: A(N,N), b(N)
         integer :: i, j
         double precision :: sum, CF, rand_val
@@ -51,18 +54,19 @@ contains
             call random_number(b(i))
             b(i) = b(i) * CF
         end do
-    end subroutine generate_matrix
+    end subroutine
 
-    subroutine print_matrix(A, b)
+    subroutine print_matrix(A, b, N)
+        integer, intent(in) :: N
         double precision, intent(in) :: A(N,N), b(N)
         integer :: i, j
-
         do i = 1, N
             write(*, '(10F9.3, " | ", F10.3)') (A(i,j), j=1,N), b(i)
         end do
-    end subroutine print_matrix
+    end subroutine
 
-    subroutine simple_iteration(A, b, x, epsilon)
+    subroutine simple_iteration(A, b, x, epsilon, N)
+        integer, intent(in) :: N
         double precision, intent(in) :: A(N,N), b(N), epsilon
         double precision, intent(out) :: x(N)
         double precision :: x_new(N), error
@@ -90,9 +94,10 @@ contains
             iter = iter + 1
             write(*, '(A, I4, A, F12.6)') "Iteration ", iter, ", error: ", error
         end do
-    end subroutine simple_iteration
+    end subroutine
 
-    subroutine gauss_seidel(A, b, x, epsilon)
+    subroutine gauss_seidel(A, b, x, epsilon, N)
+        integer, intent(in) :: N
         double precision, intent(in) :: A(N,N), b(N), epsilon
         double precision, intent(out) :: x(N)
         double precision :: error, x_old
@@ -118,9 +123,10 @@ contains
             iter = iter + 1
             write(*, '(A, I4, A, F12.6)') "Iteration ", iter, ", error: ", error
         end do
-    end subroutine gauss_seidel
+    end subroutine
 
-    subroutine sor(A, b, x, epsilon, omega)
+    subroutine sor(A, b, x, epsilon, omega, N)
+        integer, intent(in) :: N
         double precision, intent(in) :: A(N,N), b(N), epsilon, omega
         double precision, intent(out) :: x(N)
         double precision :: error, x_old, gs_update
@@ -147,9 +153,10 @@ contains
             iter = iter + 1
             write(*, '(A, I4, A, F12.6)') "Iteration ", iter, ", error: ", error
         end do
-    end subroutine sor
+    end subroutine
 
-    subroutine output_solutions(A, b, x, method_name)
+    subroutine output_solutions(A, b, x, method_name, N)
+        integer, intent(in) :: N
         double precision, intent(in) :: A(N,N), b(N), x(N)
         character(len=*), intent(in) :: method_name
         double precision :: Ax(N), residual
@@ -172,6 +179,5 @@ contains
             write(*, '(A, I4, A, F12.6)') "x[", i, "] = ", x(i)
         end do
         write(*, '(A, F12.6)') "Residual: ", residual
-    end subroutine output_solutions
+    end subroutine
 
-end program IterativeMethods
