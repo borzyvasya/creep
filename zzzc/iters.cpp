@@ -1,7 +1,8 @@
 ﻿#include <iostream>
 #include <iomanip>
-#include "mkl.h"
 #include <omp.h>
+#include "mkl.h"
+#include <fstream>
 
 const int N = 10;
 
@@ -40,21 +41,42 @@ int main() {
 }
 
 void generateMatrix(double A[][N], double b[]) {
-    srand(time(0));
-    double CF = 1.0e04;
+    double fixedA[N][N] = {
+        {10, 1, 2, 0, 0, 0, 0, 0, 0, 0},
+        {1, 10, 1, 2, 0, 0, 0, 0, 0, 0},
+        {2, 1, 10, 1, 2, 0, 0, 0, 0, 0},
+        {0, 2, 1, 10, 1, 2, 0, 0, 0, 0},
+        {0, 0, 2, 1, 10, 1, 2, 0, 0, 0},
+        {0, 0, 0, 2, 1, 10, 1, 2, 0, 0},
+        {0, 0, 0, 0, 2, 1, 10, 1, 2, 0},
+        {0, 0, 0, 0, 0, 2, 1, 10, 1, 2},
+        {0, 0, 0, 0, 0, 0, 2, 1, 10, 1},
+        {0, 0, 0, 0, 0, 0, 0, 2, 1, 10}
+    };
+
+    double fixedB[N] = { 13, 16, 20, 22, 24, 24, 23, 22, 19, 16 };
 
     for (int i = 0; i < N; i++) {
-        double sum = 0;
+        b[i] = fixedB[i];
         for (int j = 0; j < N; j++) {
-            if (i != j) {
-                A[i][j] = rand() / CF;
-                sum += fabs(A[i][j]);
-            }
+            A[i][j] = fixedA[i][j];
         }
-        A[i][i] = sum + (rand() / CF);
     }
+    //srand(time(0));
+    //double CF = 1.0e04;
 
-    for (int i = 0; i < N; i++) b[i] = rand() / CF;
+    //for (int i = 0; i < N; i++) {
+    //    double sum = 0;
+    //    for (int j = 0; j < N; j++) {
+    //        if (i != j) {
+    //            A[i][j] = rand() / CF;
+    //            sum += fabs(A[i][j]);
+    //        }
+    //    }
+    //    A[i][i] = sum + (rand() / CF);
+    //}
+
+    //for (int i = 0; i < N; i++) b[i] = rand() / CF;
 }
 
 void printMatrix(double A[][N], double b[]) {
@@ -89,7 +111,7 @@ void simpleIteration(double A[][N], double b[], double x[], double epsilon) {
         x[i] = 0;
 
     while (error > epsilon) {
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i = 0; i < N; i++) {
             // Используем cblas_ddot для вычисления A[i] * x
             double sum = cblas_ddot(N, &A[i][0], 1, x, 1);
@@ -98,7 +120,7 @@ void simpleIteration(double A[][N], double b[], double x[], double epsilon) {
         }
 
         error = 0;
-        #pragma omp parallel for reduction(max:error)
+        //#pragma omp parallel for reduction(max:error)
         for (int i = 0; i < N; i++) {
             error = max(error, fabs(x_new[i] - x[i]));
             x[i] = x_new[i];
@@ -134,6 +156,7 @@ void gaussSeidel(double A[][N], double b[], double x[], double epsilon) {
             double x_old = x[i];
             // Вычисляем A[i] * x с использованием cblas_ddot
             double sum = cblas_ddot(N, &A[i][0], 1, x, 1);
+
             // Обновляем x[i], исключая старый диагональный вклад
             x[i] = (b[i] - (sum - A[i][i] * x_old)) / A[i][i];
             error = max(error, fabs(x[i] - x_old));
