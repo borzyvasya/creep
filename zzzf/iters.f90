@@ -3,7 +3,7 @@
     implicit none
 
     integer, parameter :: N = 3
-    double precision, parameter :: EPS = 1.0d-3, OMEGA = 1.102d0
+    double precision, parameter :: EPS = 0.0002, OMEGA = 1.15
     double precision :: A(N,N), b(N), x(N)
 
     call generate_matrix(A, b, N)
@@ -100,14 +100,12 @@ subroutine gauss_seidel(A, b, x, epsilon, N)
         error = 0.0d0
 
         do i = 1, N
-            
-            x(i) = (b(i) - sum(A(i, 1:i-1) * x(1:i-1)) - sum(A(i, i+1:N) * x(i+1:N))) / A(i, i)
+            x(i) = (b(i) - sum(A(i, 1:i-1) * x(1:i-1)) - &
+             sum(A(i, i+1:N) * x(i+1:N))) / A(i, i)
         end do
 
         
         Ax = matmul(A, x)
-
-        
         error = maxval(abs(Ax - b))
 
         write(*, '(A, I4, A, F12.6)') "Iteration ", iter, ", error: ", error
@@ -152,10 +150,6 @@ subroutine sor(A, b, x, epsilon, omega, N)
 
         write(*, '(A, I4, A, F12.6)') "Iteration ", iter, ", error: ", error
     end do
-
-    if (iter == max_iter) then
-        write(*, *) "Warning: Reached maximum iterations in SOR method"
-    end if
 end subroutine
 
 

@@ -1,52 +1,79 @@
 ﻿#include <iostream>
 #include <iomanip>
+#include "mkl.h"
 
 using namespace std;
 
 const int N = 10;
-const double EPS = 0.00001;  
-const double EPS1 = 0.0001; 
-const double OMEGA = 1.056;
+const double EPS   = 0.00001;
+const double EPS1  = 0.0001;
+const double OMEGA = 1.067;
 
-void generate_matrix(double A[][N], double b[]);
-void print_matrix(double A[][N], double b[]);
-void simple_iteration(double A[][N], double b[], double x[], double, double);
-void gauss_seidel(double A[][N], double b[], double x[], double, double);
-void sor(double A[][N], double b[], double x[], double, double, double);
-void output_solutions(double A[][N], double b[], double x[], const string&);
-
-/*
-|| x^(k + 1) − x ^ (k) || < eps
-|| Ax^k - b || < eps1
-*/
-
+void generate_matrix(double[][N], double[]);
+void print_matrix(double[][N], double[]); 
+void print_LDU(double[][N], double[], double[][N]);
+void LDU_decomposition(double[][N], double[][N], double[], double[][N]);
+void simple_iteration_LDU(double[][N], double[], double[], double[], double[][N], double[][N], double, double);
+void gauss_seidel_LDU(double[][N], double[], double[], double[], double[][N], double[][N], double, double);
+void sor_LDU(double[][N], double[], double[], double[], double[][N], double[][N], double, double, double);
+void output_solutions(double[][N], double[], double[], const string&);
 
 int main() {
-    double A[N][N], b[N], x[N];
+    double A[N][N], b[N], x[N], L[N][N], U[N][N], D[N];
 
     generate_matrix(A, b);
     cout << "Matrix A and b:" << endl;
     print_matrix(A, b);
 
+    LDU_decomposition(A, L, D, U);
+
     cout << "--------------------------------------------------" << endl;
-    cout << "Simple Iterations (Jacobi Method):" << endl;
-    simple_iteration(A, b, x, EPS, EPS1);
+    print_LDU(L, D, U);
+
+    cout << "--------------------------------------------------" << endl;
+    cout << "Simple Iterations (Jacobi Method) using LDU:" << endl;
+    simple_iteration_LDU(A, b, x, D, L, U, EPS, EPS1);
     output_solutions(A, b, x, "Simple Iterations");
 
     cout << "--------------------------------------------------" << endl;
-    cout << "Gauss-Seidel Method:" << endl;
-    gauss_seidel(A, b, x, EPS, EPS1);
+    cout << "Gauss-Seidel Method using LDU:" << endl;
+    gauss_seidel_LDU(A, b, x, D, L, U, EPS, EPS1);
     output_solutions(A, b, x, "Gauss-Seidel");
 
     cout << "--------------------------------------------------" << endl;
-    cout << "Successive Over-Relaxation (SOR) Method:" << endl;
-    sor(A, b, x, EPS, EPS1, OMEGA);
+    cout << "Successive Over-Relaxation (SOR) Method using LDU:" << endl;
+    sor_LDU(A, b, x, D, L, U, EPS, EPS1, OMEGA);
     output_solutions(A, b, x, "SOR");
 
     cout << "--------------------------------------------------" << endl;
 
     return EXIT_SUCCESS;
 }
+
+void print_LDU(double L[][N], double D[], double U[][N]) {
+    cout << "Matrix L (Lower triangular):" << endl;
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            cout << setw(8) << fixed << setprecision(3) << L[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+    cout << "Matrix D (Diagonal):" << endl;
+    for (int i = 0; i < N; ++i) {
+        cout << setw(8) << fixed << setprecision(3) << D[i] << " ";
+        cout << endl;
+    }
+
+    cout << "Matrix U (Upper triangular):" << endl;
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            cout << setw(8) << fixed << setprecision(3) << U[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
 
 void generate_matrix(double A[][N], double b[]) {
     double tempA[][N] = {
@@ -81,7 +108,38 @@ void print_matrix(double A[][N], double b[]) {
     }
 }
 
-void simple_iteration(double A[][N], double b[], double x[], double epsilon, double epsilon1) {
+void LDU_decomposition(double A[][N], double L[][N], double D[], double U[][N]) {
+    double LU[N * N];
+    int ipiv[N], info;
+
+    for (int i = 0; i < N; ++i)
+        for (int j = 0; j < N; ++j)
+            LU[i * N + j] = A[i][j];
+
+    dgetrf(&N, &N, LU, &N, ipiv, &info);
+
+    for (int i = 0; i < N; ++i) {
+        D[i] = LU[i * N + i];  // диагональ
+
+        for (int j = 0; j < N; ++j) {
+            if (i > j) {
+                L[i][j] = LU[i * N + j];
+                U[i][j] = 0.0;
+            }
+            else if (i == j) {
+                L[i][j] = 0.0;
+                U[i][j] = 0.0;
+            }
+            else {
+                L[i][j] = 0.0;
+                U[i][j] = LU[i * N + j] / D[i];  
+            }
+        }
+    }
+}
+
+
+void simple_iteration_LDU(double A[][N], double b[], double x[], double D[], double L[][N], double U[][N], double epsilon, double epsilon1) {
     double x_new[N];
     double error = epsilon + 1.0;
     int iter = 0;
@@ -97,13 +155,7 @@ void simple_iteration(double A[][N], double b[], double x[], double epsilon, dou
             for (int j = 0; j < N; ++j) {
                 if (j != i) sum += A[i][j] * x[j];
             }
-
-            if (fabs(A[i][i]) < 1e-10) {
-                cout << "Error: Near-zero diagonal element at row " << i << endl;
-                return;
-            }
-
-            x_new[i] = (b[i] - sum) / A[i][i];
+            x_new[i] = (b[i] - sum) / D[i];
             error = max(error, fabs(x_new[i] - x[i]));
         }
 
@@ -114,7 +166,7 @@ void simple_iteration(double A[][N], double b[], double x[], double epsilon, dou
             double sum = 0.0;
             for (int j = 0; j < N; ++j)
                 sum += A[i][j] * x[j];
-            
+
             residual = max(residual, fabs(sum - b[i]));
         }
 
@@ -124,7 +176,7 @@ void simple_iteration(double A[][N], double b[], double x[], double epsilon, dou
     }
 }
 
-void gauss_seidel(double A[][N], double b[], double x[], double epsilon, double epsilon1) {
+void gauss_seidel_LDU(double A[][N], double b[], double x[], double D[], double L[][N], double U[][N], double epsilon, double epsilon1) {
     double error = epsilon + 1.0;
     int iter = 0;
 
@@ -140,12 +192,7 @@ void gauss_seidel(double A[][N], double b[], double x[], double epsilon, double 
                 if (j != i)
                     sum -= A[i][j] * x[j];
             }
-            if (fabs(A[i][i]) < 1.0e-10) {
-                cout << "Error: Zero or near-zero diagonal element at " << i << endl;
-                return;
-            }
-
-            double new_xi = sum / A[i][i];
+            double new_xi = sum / D[i];
             error = max(error, fabs(new_xi - x[i]));
             x[i] = new_xi;
         }
@@ -155,17 +202,18 @@ void gauss_seidel(double A[][N], double b[], double x[], double epsilon, double 
             double sum = 0.0;
             for (int j = 0; j < N; ++j)
                 sum += A[i][j] * x[j];
-      
-            residual = max(residual, fabs(sum - b[i])); //подсчет A*x
-        }
-        if (residual < epsilon1) break; //Ax - b 
 
-        cout << "Iteration " << setw(3) << iter << ", error: " << error << setprecision(10) << 
+            residual = max(residual, fabs(sum - b[i]));
+        }
+
+        if (residual < epsilon1) break;
+
+        cout << "Iteration " << setw(3) << iter << ", error: " << error << setprecision(10) <<
             ", residual: " << residual << endl;
     }
 }
 
-void sor(double A[][N], double b[], double x[], double epsilon, double epsilon1, double omega) {
+void sor_LDU(double A[][N], double b[], double x[], double D[], double L[][N], double U[][N], double epsilon, double epsilon1, double omega) {
     double error = epsilon + 1.0;
     int iter = 0;
 
@@ -182,13 +230,7 @@ void sor(double A[][N], double b[], double x[], double epsilon, double epsilon1,
                 if (j != i)
                     sum -= A[i][j] * x[j];
             }
-
-            if (fabs(A[i][i]) < 1.0e-10) {
-                cout << "Error: Zero or near-zero diagonal element at " << i << endl;
-                return;
-            }
-
-            double gs_update = sum / A[i][i];
+            double gs_update = sum / D[i];
             x[i] = (1 - omega) * x_old + omega * gs_update;
 
             error = max(error, fabs(x[i] - x_old));
@@ -205,7 +247,7 @@ void sor(double A[][N], double b[], double x[], double epsilon, double epsilon1,
 
         if (residual < epsilon1) break;
 
-        cout << "Iteration " << setw(3) << iter << ", error: " << error << setprecision(10) << 
+        cout << "Iteration " << setw(3) << iter << ", error: " << error << setprecision(10) <<
             ", residual: " << residual << endl;
     }
 }
